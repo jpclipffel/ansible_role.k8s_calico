@@ -1,0 +1,2 @@
+k8s_calico_netmgr_path: /etc/NetworkManager
+k8s_calico_manifest_url: "https://docs.projectcalico.org/manifests/calico.yaml"
