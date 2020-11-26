@@ -1,19 +1,18 @@
+# code: language=Ansible insertSpaces=true tabSize=2
+
+
 - name: Assertions
   assert:
     that:
       - k8s_primary_master_name is defined
-  tags:
-    - apply
-    - delete
+  tags: [never, apply, delete]
 
 
 - name: Check if host uses NetworkManager
   stat:
     path: "{{ k8s_calico_netmgr_path }}"
   register: _netmgr
-  tags:
-    - apply
-    - delete
+  tags: [never, apply, delete]
 
 
 - name: Create NetworkManager configuration directory
@@ -22,8 +21,7 @@
     state: directory
   when:
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
-  tags:
-    - apply
+  tags: [never, apply]
 
 
 - name: Template Calico configuration for NetworkManager
@@ -32,8 +30,7 @@
     dest: "{{ k8s_calico_netmgr_path }}/conf.d/calico.conf"
   when:
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
-  tags:
-    - apply
+  tags: [never, apply]
 
 
 - name: Apply Calico
@@ -44,8 +41,10 @@
     force: yes
   when:
     - inventory_hostname == k8s_primary_master_name
-  tags:
-    - apply
+  tags: [never, apply]
+
+
+# ---
 
 
 - name: Delete Calico
@@ -55,8 +54,7 @@
   ignore_errors: yes
   when:
     - inventory_hostname == k8s_primary_master_name
-  tags:
-    - delete
+  tags: [never, delete]
 
 
 - name: Remove Calico configuration for NetworkManager
@@ -65,16 +63,14 @@
     state: absent
   when:
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
-  tags:
-    - delete
+  tags: [never, delete]
 
 
 - name: Collect host ip links
   shell: >
     ip -json link
   register: _host_links
-  tags:
-    - delete
+  tags: [never, delete]
 
 
 - name: Delete remanent Calico links
@@ -84,8 +80,7 @@
   when:
     - item.ifname is match("^(br\-|cali)([0-9a-z])+")
   with_items: "{{ _host_links.stdout | from_json }}"
-  tags:
-    - delete
+  tags: [never, delete]
 
 
 - name: Delete remanent Calico configuration files
@@ -95,5 +90,5 @@
   with_items:
     - "/etc/cni/net.d/10-calico.conflist"
     - "/etc/cni/net.d/calico-kubeconfig"
-  tags:
-    - delete
+    - "/var/lib/cni"
+  tags: [never, delete]
