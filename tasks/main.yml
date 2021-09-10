@@ -7,13 +7,11 @@
       - k8s_primary_master_name is defined
   tags: [never, apply, delete]
 
-
 - name: Check if host uses NetworkManager
   stat:
     path: "{{ k8s_calico_netmgr_path }}"
   register: _netmgr
   tags: [never, apply, delete]
-
 
 - name: Create NetworkManager configuration directory
   file:
@@ -23,7 +21,6 @@
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
   tags: [never, apply]
 
-
 - name: Template Calico configuration for NetworkManager
   template:
     src: calico.conf.j2
@@ -31,7 +28,6 @@
   when:
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
   tags: [never, apply]
-
 
 - name: Apply Calico
   k8s:
@@ -43,9 +39,7 @@
     - inventory_hostname == k8s_primary_master_name
   tags: [never, apply]
 
-
 # ---
-
 
 - name: Delete Calico
   k8s:
@@ -56,7 +50,6 @@
     - inventory_hostname == k8s_primary_master_name
   tags: [never, delete]
 
-
 - name: Remove Calico configuration for NetworkManager
   file:
     path: "{{ k8s_calico_netmgr_path }}/conf.d/calico.conf"
@@ -65,13 +58,11 @@
     - _netmgr.stat.isdir is defined and _netmgr.stat.isdir
   tags: [never, delete]
 
-
 - name: Collect host ip links
   shell: >
     ip -json link
   register: _host_links
   tags: [never, delete]
-
 
 - name: Delete remanent Calico links
   shell: |
@@ -81,7 +72,6 @@
     - item.ifname is match("^(br\-|cali)([0-9a-z])+")
   with_items: "{{ _host_links.stdout | from_json }}"
   tags: [never, delete]
-
 
 - name: Delete remanent Calico configuration files
   file:
